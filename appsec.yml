@@ -1,0 +1,27 @@
+version: 0.0
+os: windows
+files:
+  - source: /
+    destination: C:\inetpub\wwwroot
+    overwrite: yes
+permissions:
+  - object: C:\inetpub\wwwroot
+    pattern: "**"
+    owner: IIS_IUSRS
+    group: IIS_IUSRS
+hooks:
+  BeforeInstall:
+    - location: scripts/stop_server.bat
+      timeout: 300
+      runas: Administrator
+  AfterInstall:
+    - location: scripts/install_dependencies.bat
+      timeout: 600  # Increased timeout for npm install and build
+      runas: Administrator
+  ApplicationStart:
+    - location: scripts/start_server.bat
+      timeout: 300
+      runas: Administrator
+  ValidateService:
+    - location: scripts/validate_service.bat
+      timeout: 300
