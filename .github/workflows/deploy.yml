@@ -19,18 +19,25 @@ jobs:
     
     - name: Create deployment package
       run: |
-        Compress-Archive -Path . -DestinationPath frontend-deployment.zip -Force -CompressionLevel Optimal
+        $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+        $commitHash = "${{ github.sha }}".Substring(0,7)
+        $filename = "frontend-deployment-$timestamp-$commitHash.zip"
+        
+        Compress-Archive -Path . -DestinationPath $filename -Force -CompressionLevel Optimal
+        
+        echo "DEPLOYMENT_PACKAGE=$filename" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       shell: powershell
     
     - name: Upload to S3
       run: |
-        aws s3 cp frontend-deployment.zip s3://my-codedeploy-artifacts-anirudh-codedeploy/frontend/
+        aws s3 cp $env:DEPLOYMENT_PACKAGE s3://my-codedeploy-artifacts-anirudh-codedeploy/frontend/
       shell: powershell
     
     - name: Create CodeDeploy deployment
       run: |
         aws deploy create-deployment `
-          --application-name FrontendApp `
-          --deployment-group-name FrontendDeploymentGroup `
-          --s3-location bucket=my-codedeploy-artifacts-anirudh-codedeploy,key=frontend/frontend-deployment.zip,bundleType=zip
+          --application-name "FrontendApp" `
+          --deployment-group-name "FrontendDeploymentGroup" `
+          --s3-location bucket=my-codedeploy-artifacts-anirudh-codedeploy,key=frontend/$env:DEPLOYMENT_PACKAGE,bundleType=zip `
+          --description "Auto-deployment from commit ${{ github.sha }}"
       shell: powershell

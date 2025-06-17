@@ -4,11 +4,6 @@ files:
   - source: \
     destination: C:\inetpub\wwwroot
     overwrite: yes
-permissions:
-  - object: C:\inetpub\wwwroot
-    pattern: "**"
-    owner: IIS_IUSRS
-    group: IIS_IUSRS
 hooks:
   BeforeInstall:
     - location: scripts\stop_server.bat
