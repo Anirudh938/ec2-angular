@@ -1,6 +1,13 @@
 @echo off
 echo Installing Angular dependencies and building...
 
+REM Navigate to the deployment archive directory where files are extracted
+cd /d "%~dp0\.."
+
+echo Current directory after navigation: %CD%
+echo Files in current directory:
+dir /b
+
 REM Set Node.js paths
 set "NODE_EXE=C:\Program Files\nodejs\node.exe"
 set "NPM_EXE=C:\Program Files\nodejs\npm.cmd"
