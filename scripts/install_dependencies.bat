@@ -1,17 +1,22 @@
 @echo off
 echo Installing Angular dependencies and building...
 
+REM Set Node.js paths
+set "NODE_EXE=C:\Program Files\nodejs\node.exe"
+set "NPM_EXE=C:\Program Files\nodejs\npm.cmd"
+set "NG_EXE=C:\Users\Administrator\AppData\Roaming\npm\ng.cmd"
+
 REM Check if Node.js is installed
-node --version >nul 2>&1
+"%NODE_EXE%" --version >nul 2>&1
 if %errorlevel% neq 0 (
-   echo Node.js not found! Please install Node.js first.
+   echo Node.js not found at C:\Program Files\nodejs\node.exe
    exit /b 1
 )
 
 REM Install dependencies
 if exist package.json (
    echo Installing npm dependencies...
-   npm ci --only=production
+   "%NPM_EXE%" ci --only=production
    if %errorlevel% neq 0 (
        echo npm install failed
        exit /b 1
@@ -22,15 +27,18 @@ if exist package.json (
 )
 
 REM Install Angular CLI globally if not present
-ng version >nul 2>&1
-if %errorlevel% neq 0 (
+if not exist "%NG_EXE%" (
    echo Installing Angular CLI...
-   npm install -g @angular/cli
+   "%NPM_EXE%" install -g @angular/cli
+   if %errorlevel% neq 0 (
+       echo Angular CLI installation failed
+       exit /b 1
+   )
 )
 
 REM Build the Angular application for production
 echo Building Angular application...
-ng build --configuration production
+"%NG_EXE%" build --configuration production
 if %errorlevel% neq 0 (
    echo Angular build failed
    exit /b 1
