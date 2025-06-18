@@ -1,53 +1,57 @@
 @echo off
-echo Installing Angular dependencies...
+echo Starting Angular development server...
 
-REM Navigate to the deployment archive directory where files are extracted
+REM Navigate to the deployment directory
 cd /d "%~dp0\.."
 
-echo Current directory after navigation: %CD%
-echo Files in current directory:
-dir /b
-
-REM Set Node.js paths
-set "NODE_EXE=C:\Program Files\nodejs\node.exe"
-set "NPM_EXE=C:\Program Files\nodejs\npm.cmd"
+REM Set Angular CLI path
 set "NG_EXE=C:\Users\Administrator\AppData\Roaming\npm\ng.cmd"
 
-REM Check if Node.js is installed
-"%NODE_EXE%" --version >nul 2>&1
-if %errorlevel% neq 0 (
-   echo Node.js not found at C:\Program Files\nodejs\node.exe
-   exit /b 1
-)
+REM Stop any existing Node.js processes
+echo Stopping existing Node.js processes...
+taskkill /F /IM node.exe 2>nul
+timeout /t 5 /nobreak >nul
 
-REM Install ALL dependencies (dev dependencies needed for ng serve)
-if exist package.json (
-   echo Installing npm dependencies (including dev dependencies)...
-   "%NPM_EXE%" install
-   if %errorlevel% neq 0 (
-       echo npm install failed
-       exit /b 1
-   )
+REM Start Angular development server on port 4200
+echo Starting Angular development server on port 4200...
+start "Angular Dev Server" /B "%NG_EXE%" serve --host 0.0.0.0 --port 4200 --disable-host-check --poll 1000
+
+REM Wait for server to start
+echo Waiting 30 seconds for Angular server to start...
+timeout /t 30 /nobreak >nul
+
+REM Simple test using curl if available, otherwise just check process
+echo Testing if Angular server started...
+curl -s http://localhost:4200 >nul 2>&1
+if %errorlevel% equ 0 (
+    echo SUCCESS: Angular server is responding on port 4200
 ) else (
-   echo No package.json found in %CD%
-   echo Available files:
-   dir
-   exit /b 1
+    echo Angular server may still be starting or curl not available
+    echo Checking if node process is running...
+    tasklist /FI "IMAGENAME eq node.exe" | find /I "node.exe" >nul
+    if %errorlevel% equ 0 (
+        echo Node.js process found - Angular server should be running
+    ) else (
+        echo WARNING: No Node.js process found
+    )
 )
 
-REM Install Angular CLI globally if not present
-if not exist "%NG_EXE%" (
-   echo Installing Angular CLI...
-   "%NPM_EXE%" install -g @angular/cli
-   if %errorlevel% neq 0 (
-       echo Angular CLI installation failed
-       exit /b 1
-   )
-)
+REM Create simple monitoring script
+echo Creating monitoring script...
+echo @echo off > "C:\monitor-angular.bat"
+echo :monitor_loop >> "C:\monitor-angular.bat"
+echo timeout /t 60 /nobreak ^>nul >> "C:\monitor-angular.bat"
+echo netstat -an ^| findstr ":4200" ^>nul >> "C:\monitor-angular.bat"
+echo if %%ERRORLEVEL%% NEQ 0 ^( >> "C:\monitor-angular.bat"
+echo     echo Restarting Angular server... >> "C:\monitor-angular.bat"
+echo     taskkill /F /IM node.exe 2^>nul >> "C:\monitor-angular.bat"
+echo     timeout /t 5 /nobreak ^>nul >> "C:\monitor-angular.bat"
+echo     cd /d "%CD%" >> "C:\monitor-angular.bat"
+echo     start "Angular Dev Server" /B "%NG_EXE%" serve --host 0.0.0.0 --port 4200 --disable-host-check --poll 1000 >> "C:\monitor-angular.bat"
+echo ^) >> "C:\monitor-angular.bat"
+echo goto monitor_loop >> "C:\monitor-angular.bat"
 
-REM Configure Windows Firewall for port 4200
-echo Configuring Windows Firewall for port 4200...
-netsh advfirewall firewall delete rule name="Angular Dev Server" 2>nul
-netsh advfirewall firewall add rule name="Angular Dev Server" dir=in action=allow protocol=TCP localport=4200
+REM Start monitoring script
+start "Angular Monitor" /MIN "C:\monitor-angular.bat"
 
-echo Dependencies installed successfully
+echo Angular development server setup completed
