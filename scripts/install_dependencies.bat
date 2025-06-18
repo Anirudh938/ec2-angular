@@ -1,5 +1,5 @@
 @echo off
-echo Installing Angular dependencies and building...
+echo Installing Angular dependencies...
 
 REM Navigate to the deployment archive directory where files are extracted
 cd /d "%~dp0\.."
@@ -20,16 +20,18 @@ if %errorlevel% neq 0 (
    exit /b 1
 )
 
-REM Install dependencies
+REM Install ALL dependencies (dev dependencies needed for ng serve)
 if exist package.json (
-   echo Installing npm dependencies...
-   "%NPM_EXE%" ci --only=production
+   echo Installing npm dependencies (including dev dependencies)...
+   "%NPM_EXE%" install
    if %errorlevel% neq 0 (
        echo npm install failed
        exit /b 1
    )
 ) else (
-   echo No package.json found
+   echo No package.json found in %CD%
+   echo Available files:
+   dir
    exit /b 1
 )
 
@@ -43,17 +45,9 @@ if not exist "%NG_EXE%" (
    )
 )
 
-REM Build the Angular application for production
-echo Building Angular application...
-"%NG_EXE%" build --configuration production
-if %errorlevel% neq 0 (
-   echo Angular build failed
-   exit /b 1
-)
+REM Configure Windows Firewall for port 4200
+echo Configuring Windows Firewall for port 4200...
+netsh advfirewall firewall delete rule name="Angular Dev Server" 2>nul
+netsh advfirewall firewall add rule name="Angular Dev Server" dir=in action=allow protocol=TCP localport=4200
 
-REM Set file permissions for IIS
-echo Setting file permissions...
-icacls "C:\inetpub\wwwroot" /grant "IIS_IUSRS:(OI)(CI)F" /T >nul 2>&1
-icacls "C:\inetpub\wwwroot" /grant "IIS APPPOOL\DefaultAppPool:(OI)(CI)F" /T >nul 2>&1
-
-echo Build completed successfully
+echo Dependencies installed successfully
