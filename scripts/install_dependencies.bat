@@ -13,9 +13,9 @@ set "NG_EXE=C:\Users\Administrator\AppData\Roaming\npm\ng.cmd"
 
 echo Checking Node.js installation...
 if exist "%NODE_EXE%" (
-    echo Node.js found at %NODE_EXE%
+    echo Node.js found at %NODE_EXE% >> C:\application-log.txt
 ) else (
-    echo ERROR: Node.js not found at %NODE_EXE%
+    echo ERROR: Node.js not found at %NODE_EXE% >> C:\application-log.txt
     exit /b 1
 )
 
@@ -24,10 +24,10 @@ if exist package.json (
     REM Use npm install to get both prod and dev dependencies
     "%NPM_EXE%" install --prefer-offline --no-audit --no-fund
     if %errorlevel% neq 0 (
-        echo npm install failed, trying without optimizations...
+        echo npm install failed, trying without optimizations... >> C:\application-log.txt
         "%NPM_EXE%" install
         if %errorlevel% neq 0 (
-            echo npm install failed completely
+            echo npm install failed completely >> C:\application-log.txt
             exit /b 1
         )
     )
