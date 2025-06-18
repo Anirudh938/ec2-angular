@@ -6,10 +6,8 @@ set "PATH=C:\Program Files\nodejs;C:\Users\Administrator\AppData\Roaming\npm;%PA
 
 taskkill /F /IM node.exe 2>nul
 
-start "Angular" /MIN ng serve --host 0.0.0.0 --port 4200 --disable-host-check
+start /B "" ng serve --host 0.0.0.0 --port 4200 --disable-host-check >nul 2>&1
 
-ping 127.0.0.1 -n 46 >nul
+ping 127.0.0.1 -n 31 >nul
 
-netstat -an | findstr ":4200"
-
-echo Startup completed
+echo Angular server started
