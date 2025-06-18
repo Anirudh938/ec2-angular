@@ -10,7 +10,7 @@ set "NG_CLI_ANALYTICS=false"
 
 echo Starting Angular server... >> C:\userdata-log.txt
 
-start /B "" ng serve --host 0.0.0.0 --port 4200 --disable-host-check >nul 2>&1
+start /B "" ng serve --host 0.0.0.0 --port 4200 --disable-host-check >> C:\userdata-log.txt 2>&1
 
 ping 127.0.0.1 -n 31 >nul
 
