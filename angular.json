@@ -61,7 +61,7 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular/build:dev-server",
+          "builder": "@angular-devkit/build:dev-server",
           "configurations": {
             "production": {
               "buildTarget": "ec2-angular:build:production"
@@ -73,10 +73,10 @@
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular/build:extract-i18n"
+          "builder": "@angular-devkit/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular-devkit/build:karma",
           "options": {
             "polyfills": [
               "zone.js",
