@@ -20,13 +20,14 @@ if exist "%NODE_EXE%" (
 )
 
 if exist package.json (
-    echo Found package.json, installing dependencies...
-    "%NPM_EXE%" ci --prefer-offline --no-audit --no-fund
+    echo Found package.json, installing ALL dependencies including dev dependencies...
+    REM Use npm install to get both prod and dev dependencies
+    "%NPM_EXE%" install --prefer-offline --no-audit --no-fund
     if %errorlevel% neq 0 (
-        echo npm ci failed, trying regular install...
-        "%NPM_EXE%" install --prefer-offline --no-audit --no-fund
+        echo npm install failed, trying without optimizations...
+        "%NPM_EXE%" install
         if %errorlevel% neq 0 (
-            echo npm install failed
+            echo npm install failed completely
             exit /b 1
         )
     )
