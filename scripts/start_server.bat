@@ -6,6 +6,8 @@ set "PATH=C:\Program Files\nodejs;C:\Users\Administrator\AppData\Roaming\npm;%PA
 
 taskkill /F /IM node.exe 2>nul
 
+set "NG_CLI_ANALYTICS=false"
+
 start /B "" ng serve --host 0.0.0.0 --port 4200 --disable-host-check >nul 2>&1
 
 ping 127.0.0.1 -n 31 >nul
