@@ -11,7 +11,7 @@ export class Test {
 
 
   getData(): Observable<string> {
-    return this.http.get('/api/', { 
+    return this.http.get('http://localhost:8080/api/', { 
       responseType: 'text',
       headers: new HttpHeaders({
         'Accept': 'text/plain'
