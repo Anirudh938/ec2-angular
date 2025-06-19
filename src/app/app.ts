@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { Test } from './service/test';
 
 @Component({
   selector: 'app-root',
@@ -9,4 +10,14 @@ import { RouterOutlet } from '@angular/router';
 })
 export class App {
   protected title = 'ec2-angular';
+
+  constructor(private testService: Test) {
+    this.getData();
+  }
+
+  getData(){
+    this.testService.getData().subscribe((data) => {
+      console.log(data);
+    });
+  }
 }

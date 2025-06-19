@@ -1,0 +1,11 @@
+{
+    "/api/*": {
+      "target": "http://internal-private-alb-1299915780.us-east-1.elb.amazonaws.com:8080",
+      "secure": false,
+      "changeOrigin": true,
+      "logLevel": "debug",
+      "headers": {
+        "Connection": "keep-alive"
+      }
+    }
+  }
