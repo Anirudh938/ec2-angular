@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -10,7 +10,12 @@ export class Test {
   constructor(private http: HttpClient) { }
 
 
-  getData() : Observable<string> {
-    return this.http.get<string>('/api/');
+  getData(): Observable<string> {
+    return this.http.get('/api/', { 
+      responseType: 'text',
+      headers: new HttpHeaders({
+        'Accept': 'text/plain'
+      })
+    });
   }
 }
