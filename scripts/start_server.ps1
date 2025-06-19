@@ -1,103 +1,113 @@
-# FINAL ANGULAR SERVER START - GUARANTEED TO WORK
+# FINAL WORKING START SCRIPT - EXACT REPLICA of your successful manual steps
 $logFile = "C:\application-log.txt"
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-Add-Content -Path $logFile -Value "$timestamp - FINAL ANGULAR SERVER START SCRIPT"
+Write-Host "Starting Angular server - EXACT REPLICA of your working manual steps"
+Add-Content -Path $logFile -Value "$timestamp - Starting Angular server (replicating successful manual process)"
 
-# Navigate to application directory
+# Navigate to app directory - EXACT same as manual
 Set-Location "C:\app"
-Add-Content -Path $logFile -Value "$timestamp - Changed to directory: C:\app"
+Add-Content -Path $logFile -Value "$timestamp - Changed to C:\app directory"
 
-# Set PATH with ALL possible locations
-$allPaths = "C:\Program Files\nodejs;C:\Users\Administrator\AppData\Roaming\npm;C:\Windows\system32\config\systemprofile\AppData\Roaming\npm"
-$env:PATH = "$allPaths;$env:PATH"
-Add-Content -Path $logFile -Value "$timestamp - Updated PATH with all Node.js and Angular CLI locations"
+# Set PATH - EXACT same as manual  
+$env:PATH = "C:\Program Files\nodejs;$env:PATH"
+$env:PATH = "C:\Users\Administrator\AppData\Roaming\npm;$env:PATH"
+Add-Content -Path $logFile -Value "$timestamp - Set PATH to include Node.js and npm global packages"
 
-Write-Host "Starting Angular server with GUARANTEED working configuration..."
-Add-Content -Path $logFile -Value "$timestamp - Attempting to start Angular server"
+Write-Host "Current directory: $(Get-Location)"
+Write-Host "PATH includes Node.js: $($env:PATH -like '*nodejs*')"
 
-# Kill any existing processes
+# Kill any existing Node.js processes
+Write-Host "Stopping any existing Angular processes..."
 Get-Process -Name "node" -ErrorAction SilentlyContinue | Stop-Process -Force
-Add-Content -Path $logFile -Value "$timestamp - Killed any existing Node processes"
+Add-Content -Path $logFile -Value "$timestamp - Killed any existing Node.js processes"
 
-# Create the ultimate startup script
-$serverScript = @'
+# Verify ng command is available
+Write-Host "Verifying ng command..."
+try {
+    $ngHelp = ng version --help 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        Add-Content -Path $logFile -Value "$timestamp - ng command is accessible"
+        Write-Host "✅ ng command verified"
+    } else {
+        throw "ng command failed"
+    }
+} catch {
+    Add-Content -Path $logFile -Value "$timestamp - WARNING: ng command not accessible, may need to wait for PATH update"
+    Write-Host "⚠ ng command not immediately accessible"
+}
+
+# Create the exact startup command as your manual process
+Write-Host "Starting ng serve with your exact working parameters..."
+Add-Content -Path $logFile -Value "$timestamp - Starting: ng serve --host 0.0.0.0 --port 4200 --disable-host-check"
+
+# Create batch file with exact command
+$startupBatch = @'
 @echo off
-echo FINAL ANGULAR SERVER STARTUP
-set "PATH=C:\Program Files\nodejs;C:\Users\Administrator\AppData\Roaming\npm;C:\Windows\system32\config\systemprofile\AppData\Roaming\npm;%PATH%"
+echo Starting Angular Development Server...
+set "PATH=C:\Program Files\nodejs;C:\Users\Administrator\AppData\Roaming\npm;%PATH%"
 cd /d C:\app
 
-echo === FINAL VERIFICATION BEFORE START ===
-echo Checking Node.js:
+echo Verifying setup...
+echo Node.js version:
 node --version
-echo Checking npm:
+echo npm version:
 npm --version
-echo Checking Angular CLI:
+echo Angular CLI:
 ng version --help
-echo Checking critical package:
-npm list @angular-devkit/build-angular
 
-echo === STARTING ANGULAR DEV SERVER ===
-echo Starting server at %date% %time%
-ng serve --host 0.0.0.0 --port 4200 --disable-host-check --verbose
+echo.
+echo Starting Angular server...
+echo Command: ng serve --host 0.0.0.0 --port 4200 --disable-host-check
+ng serve --host 0.0.0.0 --port 4200 --disable-host-check
 '@
 
-$serverScript | Out-File -FilePath "final_start.bat" -Encoding ASCII
-Add-Content -Path $logFile -Value "$timestamp - Created final startup script with full verification"
+$startupBatch | Out-File -FilePath "start_angular.bat" -Encoding ASCII
+Add-Content -Path $logFile -Value "$timestamp - Created startup batch file with exact manual commands"
 
-# Start the server and capture output
-Add-Content -Path $logFile -Value "$timestamp - Starting Angular server process"
-Write-Host "Launching Angular server..."
+# Start the server exactly as you did manually
+Write-Host "Launching Angular development server..."
+Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "start_angular.bat" -WindowStyle Minimized
 
-# Start in background but keep it alive
-$process = Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "final_start.bat" -PassThru -WindowStyle Minimized
+Add-Content -Path $logFile -Value "$timestamp - Started Angular server process"
 
-Add-Content -Path $logFile -Value "$timestamp - Started server process with PID: $($process.Id)"
+# Wait for server to start
+Write-Host "Waiting for server to start (45 seconds)..."
+Add-Content -Path $logFile -Value "$timestamp - Waiting 45 seconds for server startup"
+Start-Sleep -Seconds 45
 
-# Wait longer for startup
-Add-Content -Path $logFile -Value "$timestamp - Waiting 60 seconds for server to fully start"
-Start-Sleep -Seconds 60
-
-# Comprehensive server check
+# Check if server is running
+Write-Host "Checking if server is running..."
 $serverRunning = $false
 $attempts = 0
-$maxAttempts = 5
+$maxAttempts = 3
 
 while (-not $serverRunning -and $attempts -lt $maxAttempts) {
     $attempts++
     Add-Content -Path $logFile -Value "$timestamp - Server check attempt $attempts"
     
-    # Check port 4200
-    try {
-        $tcpClient = New-Object System.Net.Sockets.TcpClient
-        $tcpClient.Connect("localhost", 4200)
-        $tcpClient.Close()
-        $serverRunning = $true
-        Add-Content -Path $logFile -Value "$timestamp - SERVER IS RUNNING ON PORT 4200!"
-        Write-Host "SERVER IS RUNNING ON PORT 4200!"
-    } catch {
-        Add-Content -Path $logFile -Value "$timestamp - Port 4200 not ready yet, waiting..."
-        Start-Sleep -Seconds 10
-    }
-}
-
-# Check with netstat as backup
-if (-not $serverRunning) {
-    $netstatResult = netstat -an | Select-String ":4200"
+    # Check port 4200 with netstat
+    $netstatResult = netstat -an | Select-String ":4200.*LISTENING"
     if ($netstatResult) {
-        Add-Content -Path $logFile -Value "$timestamp - Port 4200 is listening (netstat confirmed)"
-        Write-Host "Port 4200 is listening"
         $serverRunning = $true
+        Write-Host "✅ SUCCESS: Angular server is running on port 4200!"
+        Write-Host "🌐 Access your app at: http://your-ec2-ip:4200"
+        Add-Content -Path $logFile -Value "$timestamp - SUCCESS: Server confirmed running on port 4200"
+        Add-Content -Path $logFile -Value "$timestamp - netstat output: $netstatResult"
+    } else {
+        Write-Host "Port 4200 not ready yet, waiting 15 more seconds..."
+        Add-Content -Path $logFile -Value "$timestamp - Port 4200 not ready, waiting..."
+        Start-Sleep -Seconds 15
     }
 }
 
-# Check running processes
+# Check for Node.js processes
 $nodeProcesses = Get-Process -Name "node" -ErrorAction SilentlyContinue
 if ($nodeProcesses) {
-    Add-Content -Path $logFile -Value "$timestamp - Found $($nodeProcesses.Count) Node.js process(es) running"
-    foreach ($proc in $nodeProcesses) {
-        Add-Content -Path $logFile -Value "$timestamp - Node process PID: $($proc.Id)"
+    Write-Host "Found $($nodeProcesses.Count) Node.js process(es) running"
+    Add-Content -Path $logFile -Value "$timestamp - Found $($nodeProcesses.Count) Node.js processes running"
+    foreach ($process in $nodeProcesses) {
+        Add-Content -Path $logFile -Value "$timestamp - Node.js process PID: $($process.Id)"
     }
 } else {
     Add-Content -Path $logFile -Value "$timestamp - No Node.js processes found"
@@ -106,20 +116,17 @@ if ($nodeProcesses) {
 # Final status
 $finalTimestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 if ($serverRunning) {
-    Add-Content -Path $logFile -Value "$finalTimestamp - ANGULAR SERVER STARTED SUCCESSFULLY ON PORT 4200"
-    Write-Host "ANGULAR SERVER STARTED SUCCESSFULLY ON PORT 4200"
-    Write-Host "Access your app at: http://your-ec2-ip:4200"
+    Add-Content -Path $logFile -Value "$finalTimestamp - ✅ Angular server started successfully - READY FOR USE"
+    Write-Host "🎉 Angular server started successfully!"
+    Write-Host "Your app should be accessible at http://your-ec2-ip:4200"
 } else {
-    Add-Content -Path $logFile -Value "$finalTimestamp - SERVER MAY NOT HAVE STARTED - CHECK LOGS"
-    Write-Host "SERVER MAY NOT HAVE STARTED - CHECK final_start.bat output"
-    
-    # Show recent log entries
-    if (Test-Path "final_start.bat") {
-        Add-Content -Path $logFile -Value "$finalTimestamp - Server startup script still exists - process may still be running"
-    }
+    Add-Content -Path $logFile -Value "$finalTimestamp - ⚠ Server status unclear - check manually"
+    Write-Host "⚠ Server may still be starting. Check manually with: netstat -an | findstr :4200"
 }
 
-# Don't cleanup - let the server keep running
-Add-Content -Path $logFile -Value "$finalTimestamp - Keeping all files for server operation"
-Write-Host "FINAL ANGULAR SERVER START SCRIPT COMPLETED"
+# Keep the startup script for debugging
+Add-Content -Path $logFile -Value "$finalTimestamp - Keeping start_angular.bat for debugging"
+Write-Host "Startup script saved as start_angular.bat for manual debugging if needed"
+
+Write-Host "🎯 Server start script completed!"
 exit 0
