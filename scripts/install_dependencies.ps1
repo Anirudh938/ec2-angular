@@ -60,10 +60,10 @@ if (Test-Path "package-lock.json") {
 }
 
 # Create comprehensive installation script
-$installScript = @"
+$installScript = @'
 @echo off
 echo COMPREHENSIVE ANGULAR INSTALLATION STARTING
-set "PATH=$allPaths;%PATH%"
+set "PATH=C:\Program Files\nodejs;C:\Users\Administrator\AppData\Roaming\npm;C:\Windows\system32\config\systemprofile\AppData\Roaming\npm;%PATH%"
 cd /d C:\app
 
 echo === CLEARING NPM CACHE ===
@@ -99,7 +99,7 @@ npm list @angular/core
 npm list typescript
 
 echo === INSTALLATION COMPLETED ===
-"@
+'@
 
 $installScript | Out-File -FilePath "comprehensive_install.bat" -Encoding ASCII
 Add-Content -Path $logFile -Value "$timestamp - Created comprehensive installation script"
@@ -130,9 +130,9 @@ $criticalPackages = @(
 $allPackagesFound = $true
 foreach ($pkg in $criticalPackages) {
     if (Test-Path $pkg) {
-        Add-Content -Path $logFile -Value "$timestamp - ✓ VERIFIED: $pkg"
+        Add-Content -Path $logFile -Value "$timestamp - VERIFIED: $pkg"
     } else {
-        Add-Content -Path $logFile -Value "$timestamp - ✗ MISSING: $pkg"
+        Add-Content -Path $logFile -Value "$timestamp - MISSING: $pkg"
         $allPackagesFound = $false
     }
 }
@@ -141,12 +141,13 @@ foreach ($pkg in $criticalPackages) {
 Write-Host "Installing Angular CLI globally..."
 Add-Content -Path $logFile -Value "$timestamp - Installing Angular CLI globally as backup"
 
-@"
+$globalInstallScript = @'
 @echo off
-set "PATH=$allPaths;%PATH%"
+set "PATH=C:\Program Files\nodejs;C:\Users\Administrator\AppData\Roaming\npm;C:\Windows\system32\config\systemprofile\AppData\Roaming\npm;%PATH%"
 npm install -g @angular/cli --force
-"@ | Out-File -FilePath "global_ng_install.bat" -Encoding ASCII
+'@
 
+$globalInstallScript | Out-File -FilePath "global_ng_install.bat" -Encoding ASCII
 cmd.exe /c global_ng_install.bat
 Remove-Item "global_ng_install.bat" -Force -ErrorAction SilentlyContinue
 
@@ -157,13 +158,14 @@ netsh advfirewall firewall add rule name="Angular Dev Server" dir=in action=allo
 
 # Final test - try ng version
 Add-Content -Path $logFile -Value "$timestamp - Testing Angular CLI"
-@"
+$testScript = @'
 @echo off
-set "PATH=$allPaths;%PATH%"
+set "PATH=C:\Program Files\nodejs;C:\Users\Administrator\AppData\Roaming\npm;C:\Windows\system32\config\systemprofile\AppData\Roaming\npm;%PATH%"
 cd /d C:\app
 ng version --help
-"@ | Out-File -FilePath "test_ng.bat" -Encoding ASCII
+'@
 
+$testScript | Out-File -FilePath "test_ng.bat" -Encoding ASCII
 $ngTest = cmd.exe /c test_ng.bat 2>&1
 Add-Content -Path $logFile -Value "$timestamp - Angular CLI test result: $ngTest"
 
@@ -173,11 +175,11 @@ Remove-Item "test_ng.bat" -Force -ErrorAction SilentlyContinue
 
 $finalTimestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 if ($allPackagesFound) {
-    Add-Content -Path $logFile -Value "$finalTimestamp - ✓ ALL DEPENDENCIES INSTALLED SUCCESSFULLY - READY FOR NG SERVE"
-    Write-Host "✓ ALL DEPENDENCIES INSTALLED SUCCESSFULLY"
+    Add-Content -Path $logFile -Value "$finalTimestamp - ALL DEPENDENCIES INSTALLED SUCCESSFULLY - READY FOR NG SERVE"
+    Write-Host "ALL DEPENDENCIES INSTALLED SUCCESSFULLY"
 } else {
-    Add-Content -Path $logFile -Value "$finalTimestamp - ⚠ SOME PACKAGES MAY BE MISSING - CHECK LOG"
-    Write-Host "⚠ Installation completed but check log for any missing packages"
+    Add-Content -Path $logFile -Value "$finalTimestamp - SOME PACKAGES MAY BE MISSING - CHECK LOG"
+    Write-Host "Installation completed but check log for any missing packages"
 }
 
 Write-Host "FINAL DEPENDENCY INSTALLATION COMPLETED"
