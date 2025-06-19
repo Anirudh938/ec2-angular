@@ -1,119 +1,84 @@
-$fileToDelete = "C:\application-log.txt"
-if (Test-Path $fileToDelete) {
-    Remove-Item $fileToDelete -Force
-    Write-Host "Deleted existing file: $fileToDelete"
+# Simple Angular Dependencies Installation Script
+
+# Delete old log file
+if (Test-Path "C:\application-log.txt") {
+    Remove-Item "C:\application-log.txt" -Force
 }
 
-# PowerShell script to install Angular dependencies
 Write-Host "Installing Angular dependencies..."
 
-# Change to parent directory (equivalent to cd /d "%~dp0\..")
+# Go to parent directory
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $parentPath = Split-Path -Parent $scriptPath
 Set-Location $parentPath
 
 Write-Host "Current directory: $(Get-Location)"
-Write-Host "Files in directory:"
-Get-ChildItem -Name
 
-# Set Node.js and npm paths
-$NODE_EXE = "C:\Program Files\nodejs\node.exe"
-$NPM_EXE = "C:\Program Files\nodejs\npm.cmd"
-$NG_EXE = "C:\Users\Administrator\AppData\Roaming\npm\ng.cmd"
-
-# Add Node.js to PATH permanently if not already there
+# Set paths
 $nodePath = "C:\Program Files\nodejs"
-$npmGlobalPath = "C:\Users\Administrator\AppData\Roaming\npm"
+$npmPath = "C:\Program Files\nodejs\npm.cmd"
 
-$currentSystemPath = [Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::Machine)
-$pathsToAdd = @()
-
-if ($currentSystemPath -notlike "*$nodePath*") {
-    $pathsToAdd += $nodePath
-}
-if ($currentSystemPath -notlike "*$npmGlobalPath*") {
-    $pathsToAdd += $npmGlobalPath
+# Add Node.js to system PATH permanently
+$systemPath = [Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::Machine)
+if ($systemPath -notlike "*$nodePath*") {
+    Write-Host "Adding Node.js to system PATH..."
+    [Environment]::SetEnvironmentVariable("PATH", "$systemPath;$nodePath", [EnvironmentVariableTarget]::Machine)
 }
 
-if ($pathsToAdd.Count -gt 0) {
-    Write-Host "Adding Node.js paths to system PATH permanently..."
-    $newSystemPath = $currentSystemPath
-    foreach ($path in $pathsToAdd) {
-        $newSystemPath = "$newSystemPath;$path"
-    }
-    [Environment]::SetEnvironmentVariable("PATH", $newSystemPath, [EnvironmentVariableTarget]::Machine)
-    
-    # Also update current session
-    $env:PATH = "$nodePath;$npmGlobalPath;$env:PATH"
-    Write-Host "PATH updated permanently and for current session"
-}
+# Set PATH for current session
+$env:PATH = "$nodePath;$env:PATH"
 
-# Set Node.js environment variables
-$env:NODE_HOME = "C:\Program Files\nodejs"
-$env:NPM_CONFIG_PREFIX = "C:\Users\Administrator\AppData\Roaming\npm"
-
-Write-Host "Checking Node.js installation..."
-if (Test-Path $NODE_EXE) {
-    Add-Content -Path "C:\application-log.txt" -Value "Node.js found at $NODE_EXE"
-    Write-Host "Node.js found at $NODE_EXE"
-} else {
-    Add-Content -Path "C:\application-log.txt" -Value "ERROR: Node.js not found at $NODE_EXE"
-    Write-Host "ERROR: Node.js not found at $NODE_EXE"
+# Check Node.js
+if (-not (Test-Path "$nodePath\node.exe")) {
+    Write-Host "ERROR: Node.js not found!"
     exit 1
 }
 
-if (Test-Path "package.json") {
-    Write-Host "Found package.json, installing ALL dependencies including dev dependencies..."
-    
-    # Use npm install to get both prod and dev dependencies
-    Write-Host "Running npm install with optimizations..."
-    & $NPM_EXE install --prefer-offline --no-audit --no-fund
-    
-    if ($LASTEXITCODE -ne 0) {
-        Add-Content -Path "C:\application-log.txt" -Value "npm install failed, trying without optimizations..."
-        Write-Host "npm install failed, trying without optimizations..."
-        
-        & $NPM_EXE install
-        
-        if ($LASTEXITCODE -ne 0) {
-            Add-Content -Path "C:\application-log.txt" -Value "npm install failed completely"
-            Write-Host "npm install failed completely"
-            exit 1
-        }
-    }
-    
-    Write-Host "Dependencies installed successfully"
-} else {
+Write-Host "Node.js found"
+
+# Check package.json
+if (-not (Test-Path "package.json")) {
     Write-Host "ERROR: No package.json found"
     exit 1
 }
 
-if (-not (Test-Path $NG_EXE)) {
-    Write-Host "Installing Angular CLI..."
-    & $NPM_EXE install -g @angular/cli
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Angular CLI installation failed"
-        exit 1
-    }
-    
-    Write-Host "Angular CLI installed successfully"
-} else {
-    Write-Host "Angular CLI already installed"
-}
+# Install dependencies using batch command to ensure proper PATH
+$batchCommand = @"
+@echo off
+set "PATH=$nodePath;%PATH%"
+cd /d "$(Get-Location)"
+"$npmPath" install
+"@
 
-Write-Host "Configuring Windows Firewall..."
-# Remove existing rule (suppress errors if it doesn't exist)
-netsh advfirewall firewall delete rule name="Angular Dev Server" 2>$null
+$batchCommand | Out-File -FilePath "install.bat" -Encoding ASCII
 
-# Add new firewall rule
-netsh advfirewall firewall add rule name="Angular Dev Server" dir=in action=allow protocol=TCP localport=4200
+Write-Host "Installing dependencies..."
+cmd.exe /c install.bat
 
 if ($LASTEXITCODE -eq 0) {
-    Add-Content -Path "C:\application-log.txt" -Value "Firewall rule configured successfully"
+    Write-Host "Dependencies installed successfully"
 } else {
-    Add-Content -Path "C:\application-log.txt" -Value "Warning: Firewall rule configuration may have failed"
+    Write-Host "ERROR: npm install failed"
+    exit 1
 }
 
-Write-Host "Install script completed successfully"
+# Install Angular CLI
+Write-Host "Installing Angular CLI..."
+cmd.exe /c "set PATH=$nodePath;%PATH% && `"$npmPath`" install -g @angular/cli"
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "Angular CLI installed successfully"
+} else {
+    Write-Host "ERROR: Angular CLI installation failed"
+}
+
+# Configure firewall
+Write-Host "Configuring firewall..."
+netsh advfirewall firewall delete rule name="Angular Dev Server" 2>$null
+netsh advfirewall firewall add rule name="Angular Dev Server" dir=in action=allow protocol=TCP localport=4200
+
+# Clean up
+Remove-Item "install.bat" -Force -ErrorAction SilentlyContinue
+
+Write-Host "Installation completed"
 exit 0
