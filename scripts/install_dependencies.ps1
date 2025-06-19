@@ -50,15 +50,31 @@ if (-not (Test-Path "package.json")) {
 
 Add-Content -Path $logFile -Value "$timestamp - Found package.json in C:\app"
 
-# Create batch script to ensure proper environment
+# Create batch script to ensure proper environment and install required packages
 @"
 @echo off
 set "PATH=$nodePath;%PATH%"
 cd /d C:\app
-npm install --production=false
+echo Installing all dependencies including dev dependencies... >> C:\application-log.txt
+npm install
+echo Verifying Angular CLI and build tools... >> C:\application-log.txt
+npm list @angular/cli >> C:\application-log.txt 2>&1
+npm list @angular-devkit/build-angular >> C:\application-log.txt 2>&1
+npm list @angular/core >> C:\application-log.txt 2>&1
+if errorlevel 1 (
+    echo Some Angular packages missing, installing explicitly... >> C:\application-log.txt
+    npm install @angular/cli @angular-devkit/build-angular --save-dev
+    npm install @angular/core --save
+)
+echo Checking if TypeScript is available... >> C:\application-log.txt
+npm list typescript >> C:\application-log.txt 2>&1
+if errorlevel 1 (
+    echo Installing TypeScript... >> C:\application-log.txt
+    npm install typescript --save-dev
+)
 "@ | Out-File -FilePath "npm_install.bat" -Encoding ASCII
 
-Add-Content -Path $logFile -Value "$timestamp - Created npm install batch script"
+Add-Content -Path $logFile -Value "$timestamp - Created comprehensive npm install batch script"
 
 # Run npm install
 Write-Host "Installing npm dependencies..."
@@ -74,6 +90,23 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Add-Content -Path $logFile -Value "$timestamp - npm install completed successfully"
+
+# Verify critical Angular packages are installed
+Add-Content -Path $logFile -Value "$timestamp - Verifying Angular packages installation"
+@"
+@echo off
+set "PATH=$nodePath;%PATH%"
+cd /d C:\app
+echo Checking Angular CLI locally... >> C:\application-log.txt
+npm list @angular/cli >> C:\application-log.txt 2>&1
+echo Checking Angular Core... >> C:\application-log.txt
+npm list @angular/core >> C:\application-log.txt 2>&1
+echo Checking build-angular... >> C:\application-log.txt
+npm list @angular-devkit/build-angular >> C:\application-log.txt 2>&1
+"@ | Out-File -FilePath "verify_packages.bat" -Encoding ASCII
+
+cmd.exe /c verify_packages.bat
+Remove-Item "verify_packages.bat" -Force -ErrorAction SilentlyContinue
 
 # Install Angular CLI globally
 @"

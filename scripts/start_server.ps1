@@ -25,11 +25,11 @@ Add-Content -Path $logFile -Value "$timestamp - Killed any existing Angular proc
 @echo off
 set "PATH=C:\Program Files\nodejs;C:\Users\Administrator\AppData\Roaming\npm;%PATH%"
 cd /d C:\app
-echo Starting ng serve... >> C:\application-log.txt
-ng serve --host 0.0.0.0 --port 4200 --disable-host-check >> C:\application-log.txt 2>&1
+echo Starting ng serve with development configuration... >> C:\application-log.txt
+ng serve --configuration=development --host 0.0.0.0 --port 4200 --disable-host-check >> C:\application-log.txt 2>&1
 "@ | Out-File -FilePath "start_ng.bat" -Encoding ASCII
 
-Add-Content -Path $logFile -Value "$timestamp - Created start_ng.bat script"
+Add-Content -Path $logFile -Value "$timestamp - Created start_ng.bat script with development configuration"
 
 # Start the server in background
 Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "start_ng.bat" -WindowStyle Hidden
