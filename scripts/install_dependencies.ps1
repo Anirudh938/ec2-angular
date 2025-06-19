@@ -2,7 +2,6 @@
 if (Test-Path "C:\application-log.txt") {
     Remove-Item "C:\application-log.txt" -Force
 }
-
 # Install Dependencies for CodeDeploy
 $logFile = "C:\application-log.txt"
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -53,28 +52,31 @@ Add-Content -Path $logFile -Value "$timestamp - Found package.json in C:\app"
 # Create batch script to ensure proper environment and install required packages
 @"
 @echo off
-set "PATH=$nodePath;%PATH%"
+set "PATH=$nodePath;C:\Users\Administrator\AppData\Roaming\npm;C:\Windows\system32\config\systemprofile\AppData\Roaming\npm;%PATH%"
 cd /d C:\app
 echo Installing all dependencies including dev dependencies... >> C:\application-log.txt
 npm install
-echo Verifying Angular CLI and build tools... >> C:\application-log.txt
-npm list @angular/cli >> C:\application-log.txt 2>&1
+echo Checking for missing Angular build tools... >> C:\application-log.txt
 npm list @angular-devkit/build-angular >> C:\application-log.txt 2>&1
-npm list @angular/core >> C:\application-log.txt 2>&1
 if errorlevel 1 (
-    echo Some Angular packages missing, installing explicitly... >> C:\application-log.txt
-    npm install @angular/cli @angular-devkit/build-angular --save-dev
-    npm install @angular/core --save
+    echo @angular-devkit/build-angular is missing, installing... >> C:\application-log.txt
+    npm install @angular-devkit/build-angular --save-dev --force
+) else (
+    echo @angular-devkit/build-angular is already installed >> C:\application-log.txt
 )
-echo Checking if TypeScript is available... >> C:\application-log.txt
+echo Verifying other Angular packages... >> C:\application-log.txt
+npm list @angular/cli >> C:\application-log.txt 2>&1
+npm list @angular/core >> C:\application-log.txt 2>&1
 npm list typescript >> C:\application-log.txt 2>&1
 if errorlevel 1 (
-    echo Installing TypeScript... >> C:\application-log.txt
-    npm install typescript --save-dev
+    echo Installing missing Angular packages... >> C:\application-log.txt
+    npm install typescript --save-dev --force
 )
+echo Final package verification... >> C:\application-log.txt
+npm list @angular-devkit/build-angular @angular/cli @angular/core typescript >> C:\application-log.txt 2>&1
 "@ | Out-File -FilePath "npm_install.bat" -Encoding ASCII
 
-Add-Content -Path $logFile -Value "$timestamp - Created comprehensive npm install batch script"
+Add-Content -Path $logFile -Value "$timestamp - Created comprehensive npm install batch script with both Angular CLI paths"
 
 # Run npm install
 Write-Host "Installing npm dependencies..."
