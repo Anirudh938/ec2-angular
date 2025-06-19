@@ -11,6 +11,6 @@ export class Test {
 
 
   getData() : Observable<string> {
-    return this.http.get<string>('/');
+    return this.http.get<string>('/api/');
   }
 }
