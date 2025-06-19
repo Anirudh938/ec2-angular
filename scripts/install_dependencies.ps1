@@ -1,3 +1,9 @@
+$fileToDelete = "C:\application-log.txt"
+if (Test-Path $fileToDelete) {
+    Remove-Item $fileToDelete -Force
+    Write-Host "Deleted existing file: $fileToDelete"
+}
+
 # PowerShell script to install Angular dependencies
 Write-Host "Installing Angular dependencies..."
 
@@ -15,15 +21,31 @@ $NODE_EXE = "C:\Program Files\nodejs\node.exe"
 $NPM_EXE = "C:\Program Files\nodejs\npm.cmd"
 $NG_EXE = "C:\Users\Administrator\AppData\Roaming\npm\ng.cmd"
 
-# Add Node.js to PATH if not already there
+# Add Node.js to PATH permanently if not already there
 $nodePath = "C:\Program Files\nodejs"
 $npmGlobalPath = "C:\Users\Administrator\AppData\Roaming\npm"
 
-$currentPath = $env:PATH
-if ($currentPath -notlike "*$nodePath*") {
-    Write-Host "Adding Node.js to PATH..."
-    $env:PATH = "$nodePath;$npmGlobalPath;$currentPath"
-    [Environment]::SetEnvironmentVariable("PATH", $env:PATH, [EnvironmentVariableTarget]::Process)
+$currentSystemPath = [Environment]::GetEnvironmentVariable("PATH", [EnvironmentVariableTarget]::Machine)
+$pathsToAdd = @()
+
+if ($currentSystemPath -notlike "*$nodePath*") {
+    $pathsToAdd += $nodePath
+}
+if ($currentSystemPath -notlike "*$npmGlobalPath*") {
+    $pathsToAdd += $npmGlobalPath
+}
+
+if ($pathsToAdd.Count -gt 0) {
+    Write-Host "Adding Node.js paths to system PATH permanently..."
+    $newSystemPath = $currentSystemPath
+    foreach ($path in $pathsToAdd) {
+        $newSystemPath = "$newSystemPath;$path"
+    }
+    [Environment]::SetEnvironmentVariable("PATH", $newSystemPath, [EnvironmentVariableTarget]::Machine)
+    
+    # Also update current session
+    $env:PATH = "$nodePath;$npmGlobalPath;$env:PATH"
+    Write-Host "PATH updated permanently and for current session"
 }
 
 # Set Node.js environment variables
@@ -88,9 +110,9 @@ netsh advfirewall firewall delete rule name="Angular Dev Server" 2>$null
 netsh advfirewall firewall add rule name="Angular Dev Server" dir=in action=allow protocol=TCP localport=4200
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "Firewall rule configured successfully"
+    Add-Content -Path "C:\application-log.txt" -Value "Firewall rule configured successfully"
 } else {
-    Write-Host "Warning: Firewall rule configuration may have failed"
+    Add-Content -Path "C:\application-log.txt" -Value "Warning: Firewall rule configuration may have failed"
 }
 
 Write-Host "Install script completed successfully"
