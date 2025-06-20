@@ -1,2 +1,35 @@
 <h1>Successfully deployed to EC2 instance.</h1>
 <button (click)="getData()">Get Data</button>
+
+<div class="file-upload-container">
+    <h2>File Upload</h2>
+    
+    <div class="upload-form">
+      <!-- File Input -->
+      <div class="file-input-container">
+        <input 
+          type="file" 
+          id="fileInput"
+          (change)="onFileSelected($event)"
+          class="file-input">
+        <label for="fileInput" class="file-input-label">
+          Choose File
+        </label>
+      </div>
+      
+      <!-- Selected File Display -->
+      <div *ngIf="selectedFile" class="selected-file">
+        <p><strong>Selected:</strong> {{ selectedFile?.name }}</p>
+      </div>
+      
+      <!-- Upload Button -->
+      <button 
+        class="upload-button"
+        [disabled]="!selectedFile || isUploading"
+        (click)="uploadFile()">
+        <span *ngIf="!isUploading">Upload File</span>
+        <span *ngIf="isUploading">Uploading...</span>
+      </button>
+      
+    </div>
+  </div>
