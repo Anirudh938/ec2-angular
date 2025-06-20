@@ -18,4 +18,9 @@ export class Test {
       })
     });
   }
+
+
+  uploadFile(data: FormData) {
+    return this.http.post('http://localhost:8080/api/upload', data);
+  }
 }
