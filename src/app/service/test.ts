@@ -11,7 +11,7 @@ export class Test {
 
 
   getData(): Observable<string> {
-    return this.http.get('http://localhost:8080/api/', { 
+    return this.http.get('/api/', { 
       responseType: 'text',
       headers: new HttpHeaders({
         'Accept': 'text/plain'
@@ -21,6 +21,6 @@ export class Test {
 
 
   uploadFile(data: FormData) {
-    return this.http.post('http://localhost:8080/api/upload', data);
+    return this.http.post('/api/upload', data);
   }
 }
