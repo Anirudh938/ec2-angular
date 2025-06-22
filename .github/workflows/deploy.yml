@@ -30,14 +30,14 @@ jobs:
     
     - name: Upload to S3
       run: |
-        aws s3 cp $env:DEPLOYMENT_PACKAGE s3://my-codedeploy-artifacts-anirudh-codedeploy/frontend/
+        aws s3 cp $env:DEPLOYMENT_PACKAGE s3://test-codedeploy-anirudh-dev/frontend/
       shell: powershell
     
     - name: Create CodeDeploy deployment
       run: |
         aws deploy create-deployment `
-          --application-name "FrontendApp" `
-          --deployment-group-name "FrontendDeploymentGroup" `
-          --s3-location bucket=my-codedeploy-artifacts-anirudh-codedeploy,key=frontend/$env:DEPLOYMENT_PACKAGE,bundleType=zip `
+          --application-name "fullstack-app-dev-frontend-app" `
+          --deployment-group-name "fullstack-app-dev-frontend-dg" `
+          --s3-location bucket=test-codedeploy-anirudh-dev,key=frontend/$env:DEPLOYMENT_PACKAGE,bundleType=zip `
           --description "Auto-deployment from commit ${{ github.sha }}"
       shell: powershell
