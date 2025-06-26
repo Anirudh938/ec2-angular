@@ -44,4 +44,10 @@ export class App {
       console.log('File uploaded successfully');
     });
   }
+
+  getValue(value: string) {
+    this.testService.getDetails(value).subscribe((data) => {
+      console.log(data);
+    });
+  }
 }

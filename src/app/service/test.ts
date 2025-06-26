@@ -23,4 +23,13 @@ export class Test {
   uploadFile(data: FormData) {
     return this.http.post('/api/upload', data);
   }
+
+  getDetails(id: string): Observable<string> {
+    return this.http.get('/api/' + id, { 
+      responseType: 'text',
+      headers: new HttpHeaders({
+        'Accept': 'text/plain'
+      })
+    });
+  }  
 }
